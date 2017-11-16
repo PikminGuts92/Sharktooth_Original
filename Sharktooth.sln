@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sharktooth", "Sharktooth\Sharktooth.csproj", "{602B547E-F70F-4AF0-AED3-9103C2D4895E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sniffer GUI", "Sniffer GUI\Sniffer GUI.csproj", "{D468DE33-A539-46D0-87B2-A0DC0372D7A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{602B547E-F70F-4AF0-AED3-9103C2D4895E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{602B547E-F70F-4AF0-AED3-9103C2D4895E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{602B547E-F70F-4AF0-AED3-9103C2D4895E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D468DE33-A539-46D0-87B2-A0DC0372D7A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D468DE33-A539-46D0-87B2-A0DC0372D7A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D468DE33-A539-46D0-87B2-A0DC0372D7A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D468DE33-A539-46D0-87B2-A0DC0372D7A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
