@@ -33,7 +33,7 @@
             <StackPanel.Children>
                 <Label>Live Devices:</Label>
                 <ComboBox x:Name="ComboBox_LiveDevices" Width="300" SelectedItem="{Binding Path=Scanner.SelectedDevice, Mode=TwoWay}" ItemsSource="{Binding Scanner.Devices, Mode=OneWay}" DisplayMemberPath="Description" SelectedIndex="0"/>
-                <Button x:Name="Button_StartScan" Width="75" Click="Button_StartScan_Click">Start Scan</Button>
+                <Button x:Name="Button_StartScan" Width="75" Click="Button_StartScan_Click" Content="Start Scan"></Button>
                 <Label Content="{Binding Path=Version}"/>
             </StackPanel.Children>
         </StackPanel>

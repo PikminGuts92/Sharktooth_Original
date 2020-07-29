@@ -18,7 +18,7 @@ using Newtonsoft.Json;
 namespace Sharktooth
 {
     [JsonObject(MemberSerialization.OptIn)]
-    public class Scanner
+    public class Scanner : IDisposable
     {
         public string ManifestPath { get; set; }
         public string OutputDirectory { get; set; }
@@ -28,7 +28,9 @@ namespace Sharktooth
         public List<FileRequest> Requests { get; set; } = new List<FileRequest>();
         public PacketDevice SelectedDevice { get; set; }
         public List<PacketDevice> Devices { get; }
-        
+
+        protected PacketCommunicator Communicator { get; set; }
+
         public Scanner()
         {
             Devices = new List<PacketDevice>();
@@ -74,31 +76,30 @@ namespace Sharktooth
 
         public void Start()
         {
-            if (SelectedDevice == null) return;
-            using (PacketCommunicator communicator = SelectedDevice.Open(0x10000, PacketDeviceOpenAttributes.Promiscuous, 1000))
-            {
-                communicator.ReceivePackets(-1, ProcessPacket);
+            // If no device selected, don't do anything
+            if (SelectedDevice == null || !(Communicator is null))
+                return;
 
-                //communicator.SetFilter("ip and tcp");
-                //communicator.ReceivePackets(0, DispatcherHandler);
-
-                /*
-                Packet packet;
-                communicator.ReceivePacket(out packet);
-                
-                while (packet != null)
-                {
-                    if (IsHttpRequest(packet))
-                    {
-                        HttpRequestDatagram request = packet?.Ethernet?.Ip?.Tcp?.Http as HttpRequestDatagram;
-                        ParseHttpRequest(request);
-                    }
-
-                    // Gets next packet
-                    communicator.ReceivePacket(out packet);
-                }*/
-            }
+            // Start scan
+            Communicator = SelectedDevice.Open(0x10000, PacketDeviceOpenAttributes.Promiscuous, 1000);
+            Communicator.ReceivePackets(-1, ProcessPacket); // Get packets indefinitely
         }
+
+        public Task StartAsync() => Task.Run(() => Start());
+
+        public void Stop()
+        {
+            // If already null, do nothing
+            if (Communicator is null)
+                return;
+
+            // Stop scan
+            Communicator.Break();
+            Communicator.Dispose();
+            Communicator = null;
+        }
+
+        public Task StopAsync() => Task.Run(() => Stop());
 
         private void ProcessPacket(Packet packet)
         {
@@ -238,6 +239,11 @@ namespace Sharktooth
         {
             //Packet p = packet;
             counter++;
+        }
+
+        public void Dispose()
+        {
+            Communicator?.Dispose();
         }
     }
 }
