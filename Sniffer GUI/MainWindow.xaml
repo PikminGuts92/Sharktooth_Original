@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Sniffer_GUI"
         mc:Ignorable="d"
-        Title="Sniffer GUI" Height="350" Width="525" Loaded="Window_Loaded">
+        Title="Sniffer GUI" Height="350" Width="525">
     <Window.Resources>
         <!--Brushes that are used-->
         <SolidColorBrush x:Key="Brush_Background" Color="#FF5A0F25"/>
@@ -22,18 +22,31 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Background="{DynamicResource Brush_Menu}">
-
+            
         </Grid>
 
-        <Grid Grid.Row="2" Background="{DynamicResource Brush_Menu}">
-            
+        <!-- Log -->
+        <Grid Grid.Row="1" Background="{DynamicResource Brush_Menu}">
+            <ListBox HorizontalContentAlignment="Stretch" ItemsSource="{Binding Requests}">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0, 2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="100" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding FullRequest}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Grid>
         
         <StackPanel Orientation="Horizontal" Grid.Row="2">
             <StackPanel.Children>
                 <Label>Live Devices:</Label>
                 <ComboBox x:Name="ComboBox_LiveDevices" Width="300" SelectedItem="{Binding Path=Scanner.SelectedDevice, Mode=TwoWay}" ItemsSource="{Binding Scanner.Devices, Mode=OneWay}" DisplayMemberPath="Description" SelectedIndex="0"/>
-                <Button x:Name="Button_StartScan" Width="75" Click="Button_StartScan_Click" Content="Start Scan"></Button>
+                <Button x:Name="Button_StartScan" Width="75" Click="Button_StartScan_Click" Content="{Binding ScanButtonText}"></Button>
                 <Label Content="{Binding Path=Version}"/>
             </StackPanel.Children>
         </StackPanel>

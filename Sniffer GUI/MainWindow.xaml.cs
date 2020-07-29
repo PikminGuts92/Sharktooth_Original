@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Reflection;
-using Sharktooth;
+using Sniffer_GUI.ViewModels;
 
 namespace Sniffer_GUI
 {
@@ -22,34 +21,12 @@ namespace Sniffer_GUI
     /// </summary>
     public partial class MainWindow : Window
     {
-        public Scanner Scanner { get; } = new Scanner();
-        public string Version { get => "v1.0"; }
-        public bool IsRunning { get; set; } = false;
+        protected readonly MainViewModel MainContext;
 
         public MainWindow()
         {
             InitializeComponent();
-            //this.DataContext = this.Scanner;
-            this.DataContext = this;
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            //Scanner.ReadDumpFile(@"C:\Users\Cisco\Documents\WireShark\PCAP\GHTV_Booting.pcap");
-            //Scanner.Setup();
-
-            //Scanner.AddDevice(@"C:\Users\Cisco\Documents\WireShark\PCAP\GHTV_Trying.pcap");
-
-            // Output files to relative directory
-            var exeDirectory = GetExeDirectory();
-            Scanner.ManifestPath = Path.Combine(exeDirectory, @"RIPPED\manifest.json");
-            Scanner.OutputDirectory = Path.Combine(exeDirectory, @"RIPPED\");
-        }
-
-        private string GetExeDirectory()
-        {
-            var dllPath = Assembly.GetAssembly(typeof(Scanner)).Location;
-            return Path.GetDirectoryName(dllPath);
+            DataContext = MainContext = new MainViewModel();
         }
 
         private void ToolBar_Loaded(object sender, RoutedEventArgs e)
@@ -73,19 +50,7 @@ namespace Sniffer_GUI
 
         private async void Button_StartScan_Click(object sender, RoutedEventArgs e)
         {
-            if (IsRunning)
-            {
-                // Stop scan
-                IsRunning = false;
-                Button_StartScan.Content = "Start Scan";
-                await Scanner.StopAsync();
-                return;
-            }
-
-            IsRunning = true;
-            Button_StartScan.Content = "Stop Scan";
-
-            await Scanner.StartAsync();
+            await MainContext.ToggleScanButton();
         }
     }
 }
