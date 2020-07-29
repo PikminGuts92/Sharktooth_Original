@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Reflection;
 using Sharktooth;
 
 namespace Sniffer_GUI
@@ -22,7 +23,7 @@ namespace Sniffer_GUI
     public partial class MainWindow : Window
     {
         public Scanner Scanner { get; } = new Scanner();
-        public string Version { get => "v1.0456"; }
+        public string Version { get => "v1.0"; }
 
         public MainWindow()
         {
@@ -37,8 +38,17 @@ namespace Sniffer_GUI
             //Scanner.Setup();
 
             //Scanner.AddDevice(@"C:\Users\Cisco\Documents\WireShark\PCAP\GHTV_Trying.pcap");
-            Scanner.ManifestPath = @"F:\Program Testing\GHL\GHTV\RIPPED\manifest.json";
-            Scanner.OutputDirectory = @"F:\Program Testing\GHL\GHTV\RIPPED\";
+
+            // Output files to relative directory
+            var exeDirectory = GetExeDirectory();
+            Scanner.ManifestPath = Path.Combine(exeDirectory, @"RIPPED\manifest.json");
+            Scanner.OutputDirectory = Path.Combine(exeDirectory, @"RIPPED\");
+        }
+
+        private string GetExeDirectory()
+        {
+            var dllPath = Assembly.GetAssembly(typeof(Scanner)).Location;
+            return Path.GetDirectoryName(dllPath);
         }
 
         private void ToolBar_Loaded(object sender, RoutedEventArgs e)
