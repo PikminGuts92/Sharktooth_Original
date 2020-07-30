@@ -6,7 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="Pcap.Net.x86" Version="1.0.4.1" />
+    <PackageReference Include="Pcap.Net.x64" Version="1.0.4.1" />
   </ItemGroup>
 
   <ItemGroup>
