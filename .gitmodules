@@ -1,0 +1,3 @@
+[submodule "ThirdParty/packetnet-connections"]
+	path = ThirdParty/packetnet-connections
+	url = https://github.com/chmorgan/packetnet-connections.git
