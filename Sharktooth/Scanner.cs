@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -7,13 +8,16 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Collections.Specialized;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 
-using PcapDotNet.Core;
-using PcapDotNet.Packets;
-using PcapDotNet.Packets.Http;
+using PacketDotNet;
+using PacketDotNet.Connections;
+using PacketDotNet.Connections.Http;
+using SharpPcap;
 
 using Newtonsoft.Json;
+using SharpPcap.LibPcap;
 
 namespace Sharktooth
 {
@@ -26,28 +30,34 @@ namespace Sharktooth
         public List<EclipseFileRequest> EclipseRequests { get; set; } = new List<EclipseFileRequest>();
         [JsonProperty]
         public List<FileRequest> Requests { get; set; } = new List<FileRequest>();
-        public PacketDevice SelectedDevice { get; set; }
-        public List<PacketDevice> Devices { get; }
+        public ICaptureDevice SelectedDevice { get; set; }
+        public ReadOnlyCollection<ICaptureDevice> Devices { get; }
+        private TcpConnectionManager ConnectionManager { get; }
 
-        protected PacketCommunicator Communicator { get; set; }
+        private const int READ_TIMEOUT_MS = 1000;
 
         public Scanner()
         {
-            Devices = new List<PacketDevice>();
-            Devices.AddRange(LivePacketDevice.AllLocalMachine);
+            Devices = CaptureDeviceList.Instance;
+            ConnectionManager = new TcpConnectionManager();
         }
 
         public void AddDevice(string path)
         {
+            throw new NotImplementedException();
+
+            /*
             OfflinePacketDevice device = new OfflinePacketDevice(path);
             if (device == null) return;
 
-            this.Devices.Add(device);
+            this.Devices.Add(device);*/
         }
         
         public void ReadDumpFile(string path)
         {
-            // Opens device
+            throw new NotImplementedException();
+
+            /* // Opens device
             OfflinePacketDevice device = new OfflinePacketDevice(path);
             
             using (PacketCommunicator communicator = device.Open(0x10000, PacketDeviceOpenAttributes.Promiscuous, 1000))
@@ -69,39 +79,101 @@ namespace Sharktooth
                     // Gets next packet
                     communicator.ReceivePacket(out packet);
                 }
-            }
-
-            
+            } */
         }
 
         public void Start()
         {
             // If no device selected, don't do anything
-            if (SelectedDevice == null || !(Communicator is null))
+            if (SelectedDevice == null)
                 return;
 
+            SelectedDevice = new CaptureFileReaderDevice(@"F:\Temp\GHTV_Trying.pcap");
+
             // Start scan
-            Communicator = SelectedDevice.Open(0x10000, PacketDeviceOpenAttributes.Promiscuous, 1000);
-            Communicator.ReceivePackets(-1, ProcessPacket); // Get packets indefinitely
+            //Communicator = SelectedDevice.Open(0x10000, PacketDeviceOpenAttributes.Promiscuous, 1000);
+            //Communicator.ReceivePackets(-1, ProcessPacket); // Get packets indefinitely
+
+            ConnectionManager.OnConnectionFound += ConnectionManager_OnConnectionFound;
+            SelectedDevice.OnPacketArrival += new PacketArrivalEventHandler(SelectedDevice_OnPacketArrival);
+
+            //SelectedDevice.Open(DeviceMode.Promiscuous, READ_TIMEOUT_MS);
+            SelectedDevice.Open();
+            SelectedDevice.Filter = "ip and tcp"; // Must be set AFTER opening
+
+            //SelectedDevice.StartCapture();
+
+            SelectedDevice.Capture();
+        }
+
+        private void ConnectionManager_OnConnectionFound(TcpConnection c)
+        {
+            var httpSessionWatcher = new HttpSessionWatcher(c, OnHttpRequestFound, OnHttpStatusFound, OnHttpWatcherError);
+
+        }
+
+        private void OnHttpRequestFound(HttpSessionWatcherRequestEventArgs e)
+        {
+            // only display compressed messages
+            if ((e.Request.ContentEncoding == HttpMessage.ContentEncodings.Deflate) ||
+               (e.Request.ContentEncoding == HttpMessage.ContentEncodings.Gzip))
+            {
+                //               log.Info(e.Request.ToString());
+                Console.WriteLine(e.Request.ToString());
+            }
+
+            // NOTE: Regex on the url can be performed here on
+            // e.Request.Url
+        }
+
+        private void OnHttpStatusFound(HttpSessionWatcherStatusEventArgs e)
+        {
+            //Dns.GetHostEntry("");
+
+            // only display compressed messages
+            if ((e.Status.ContentEncoding == HttpMessage.ContentEncodings.Deflate) ||
+               (e.Status.ContentEncoding == HttpMessage.ContentEncodings.Gzip))
+            {
+                //                log.Info(e.Status.ToString());
+                Console.WriteLine(e.Status.ToString());
+            }
+        }
+
+        private void OnHttpWatcherError(string errorString)
+        {
+            // TODO: Handle somehow
+        }
+
+        private void SelectedDevice_OnPacketArrival(object sender, CaptureEventArgs e)
+        {
+            var packet = Packet.ParsePacket(e.Device.LinkType, e.Packet.Data);
+            var tcpPacket = packet.Extract<TcpPacket>();
+
+            if (tcpPacket is null)
+                return;
+
+            ConnectionManager.ProcessPacket(e.Packet.Timeval, tcpPacket);
         }
 
         public Task StartAsync() => Task.Run(() => Start());
 
         public void Stop()
         {
-            // If already null, do nothing
+            throw new NotImplementedException();
+
+            /*// If already null, do nothing
             if (Communicator is null)
                 return;
 
             // Stop scan
             Communicator.Break();
             Communicator.Dispose();
-            Communicator = null;
+            Communicator = null;*/
         }
 
         public Task StopAsync() => Task.Run(() => Stop());
 
-        private void ProcessPacket(Packet packet)
+        /*private void ProcessPacket(Packet packet)
         {
             if (packet == null || !IsHttpRequest(packet)) return;
             
@@ -138,7 +210,7 @@ namespace Sharktooth
                 DownloadFile(fileRequest.FullRequest, localPath);
 
             UpdateManifest();
-        }
+        }*/
 
         private FileRequest CreateRequest(string host, string path, string query)
         {
@@ -234,16 +306,9 @@ namespace Sharktooth
             return matches[0].Value.Substring(6);
         }
 
-        int counter = 0;
-        private void DispatcherHandler(Packet packet)
-        {
-            //Packet p = packet;
-            counter++;
-        }
-
         public void Dispose()
         {
-            Communicator?.Dispose();
+            //Communicator?.Dispose();
         }
     }
 }

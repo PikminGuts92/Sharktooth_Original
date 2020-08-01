@@ -1,17 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="10.0.3" />
-    <PackageReference Include="Pcap.Net.x64" Version="1.0.4.1" />
+    <PackageReference Include="PacketDotNet" Version="1.0.1" />
+    <PackageReference Include="packetnet-connections" Version="1.0.0" />
+    <PackageReference Include="SharpPcap" Version="4.6.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Web" />
+    <ProjectReference Include="..\ThirdParty\packetnet-connections\PacketDotNetConnections\PacketDotNetConnections.csproj" />
   </ItemGroup>
 
 </Project>
